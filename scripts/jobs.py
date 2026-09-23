@@ -82,17 +82,18 @@ ONCE_AT_START = [
 # ==============================================================================
 EVERY_SECONDS = [
     # --- TEMPLATE (every X seconds) — copy from here ---------------------------
-    # {
-    #     "id": "example_every_seconds",
-    #     "enabled": False,
-    #     "description": "One-line plain description.",
-    #     "interval_sec": 60,
-    #     "builtin": "",
-    #     "command": "",
-    #     "timeout_sec": 120,
-    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-server",
-    #     "env": {},
-    # },
+    {
+        "id": "aws_git_pull_doc",
+        "enabled": True,
+        "description": "DOC ONLY — on AWS install aws-git-pull.timer (every 1 min pull --ff-only).",
+        "only_at_minutes": [],
+        "builtin": "",
+        "command": "git pull --ff-only",
+        "timeout_sec": 60,
+        "cwd": "/home/ubuntu/US-Mainland-Server",
+        "env": {},
+    },
+    # --- TEMPLATE (every minute) — copy from here ------------------------------
     # --- end TEMPLATE ----------------------------------------------------------
 ]
 
@@ -104,7 +105,7 @@ EVERY_SECONDS = [
 EVERY_MINUTE = [
     {
         "id": "aws_git_pull_doc",
-        "enabled": False,
+        "enabled": True,
         "description": "DOC ONLY — on AWS install aws-git-pull.timer (every 1 min pull --ff-only).",
         "only_at_minutes": [],
         "builtin": "",
