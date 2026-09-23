@@ -3,14 +3,14 @@
 # # INFO — MUST HAVE
 # ------------------------------------------------------------------------------
 # Desk SSH-first datapack pull (OmniBook → rr-aws). One pull path.
-# Lands zips in Database/US-MAINLAND-SERVER/DATA PACKETS/
+# Lands zips in Database/NETWORK/datapacks/
 # Does NOT wipe AWS (packer owns wipe after confirmed send).
 # Ping Bruce if enabling beside any OmniBook→AWS push timer.
 # HOW TO RUN: bash ssh-datapack-pull.sh
 # HOW TO ADD: copy this script; keep dest/ssh host labeled; no secrets in file.
 # ==============================================================================
 set -euo pipefail
-DEST="${RR_DATAPACK_DEST:-/home/rootrecord/Database/US-MAINLAND-SERVER/DATA PACKETS}"
+DEST="${RR_DATAPACK_DEST:-/home/rootrecord/Database/NETWORK/datapacks}"
 HOST="${RR_AWS_SSH_HOST:-rr-aws}"
 REMOTE_OUT="${RR_AWS_OUT:-/home/ubuntu/rootrecord/out}"
 mkdir -p "$DEST"
