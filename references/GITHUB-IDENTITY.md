@@ -8,3 +8,7 @@
 # ==============================================================================
 
 Operator asked 2026-09-22: push to GitHub on each live edit, as agent identity.
+
+## Remote hygiene (2026-09-22)
+Embedded `x-access-token` PATs removed from `git remote` URLs (scrubbed to SSH or clean HTTPS).
+Never commit tokens. Prefer SSH or `gh` credential helper after PAT rotate/revoke on GitHub.com.
