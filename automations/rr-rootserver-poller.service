@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=ubuntu
+User=root
 WorkingDirectory=/home/ubuntu
 EnvironmentFile=-/home/ubuntu/.env
 ExecStart=/usr/bin/python3 /home/ubuntu/automations/scripts/rootserver_poller.py
