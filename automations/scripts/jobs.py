@@ -3,6 +3,7 @@ DEFAULTS = {"enabled": False, "timeout_sec": 120, "cwd": "", "env": {}}
 
 ON_BOOT = [
     {"id":"self_process","enabled":True,"priority":0,"builtin":"self_process","command":"","timeout_sec":5,"cwd":"","env":{}},
+    {"id":"globe_feed","enabled":True,"priority":1,"builtin":"","command":"systemctl enable --now network-globe-feed-server.service network-globe-connection-history.service","timeout_sec":30,"cwd":"/home/ubuntu/network-globe/network-globe","env":{}},
 ]
 ONCE_AT_START = []
 
