@@ -16,7 +16,7 @@ const PACKET_WINDOW_MS = Number(process.env.PACKET_WINDOW_MS || 10000);
 const GEO_TTL_MS = Number(process.env.GEO_TTL_MS || 30 * 24 * 60 * 60 * 1000);
 const GEO_DELAY_MS = Number(process.env.GEO_DELAY_MS || 1200);
 const HAWAII_POLL_MS = Number(process.env.HAWAII_POLL_MS || 2000);
-const HAWAII_FLOW_TTL_MS = Number(process.env.HAWAII_FLOW_TTL_MS || 15000);
+const HAWAII_FLOW_TTL_MS = Number(process.env.HAWAII_FLOW_TTL_MS || 5 * 60 * 1000);
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
