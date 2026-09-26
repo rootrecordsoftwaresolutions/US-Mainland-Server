@@ -568,6 +568,62 @@ function arcTooShort(lat1, lng1, lat2, lng2) {
 }
 const ARC_COLOR_GREEN = ['#22c55e', '#86efac'];
 
+
+function addPersistentHawaiiMainlandArc(arcs, origin, hawaiiFlows) {
+  if (!origin || !Number.isFinite(origin.lat) || !Number.isFinite(origin.lng) || !hawaiiFlows?.size) return;
+  let latest = null;
+  for (const flow of hawaiiFlows.values()) {
+    if (!flow?.source || !Number.isFinite(flow.source.lat) || !Number.isFinite(flow.source.lng)) continue;
+    if (!latest || Number(flow.lastSeen || 0) > Number(latest.lastSeen || 0)) latest = flow;
+  }
+  if (!latest) return;
+
+  const hLat = latest.source.lat;
+  const hLng = latest.source.lng;
+  if (arcTooShort(origin.lat, origin.lng, hLat, hLng)) return;
+
+  const altitude = arcAltitudeFor(origin.lat, origin.lng, hLat, hLng);
+  const animateMs = Math.max(
+    600,
+    Math.min(1600, 700 + angularDistanceRad(origin.lat, origin.lng, hLat, hLng) * 400)
+  );
+
+  const common = {
+    color: ARC_COLOR_GREEN,
+    stroke: 1.35,
+    altitude,
+    animateMs,
+    process: 'Hawaii ↔ Mainland',
+    protocol: 'persistent',
+    port: null,
+    ip: latest.source.ip || null,
+    endpoint: 'Hawaii',
+    city: null,
+    country: 'United States',
+    asn: latest.source.asn || null,
+    org: latest.source.org || null,
+    sourceNode: latest.sourceNode || 'HawaiiRoot',
+    sourceRegion: latest.sourceRegion || 'local-hawaii',
+    sourceLabel: latest.source.label || 'Hawaii'
+  };
+
+  arcs.push({
+    ...common,
+    startLat: origin.lat,
+    startLng: origin.lng,
+    endLat: hLat,
+    endLng: hLng
+  });
+
+  arcs.push({
+    ...common,
+    startLat: hLat,
+    startLng: hLng,
+    endLat: origin.lat,
+    endLng: origin.lng
+  });
+}
+
 function buildPayload() {
   const now = Date.now();
   const arcs = [];
@@ -584,6 +640,7 @@ function buildPayload() {
   let mapped = 0;
   let hawaiiMapped = 0;
   pruneHawaiiFlows();
+  addPersistentHawaiiMainlandArc(arcs, origin, hawaiiFlows);
   const endpointSet = new Set();
   for (const flow of currentFlows.values()) {
     const g = geoCache[flow.peer.ip];
