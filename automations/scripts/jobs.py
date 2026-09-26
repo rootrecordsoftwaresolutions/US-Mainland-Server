@@ -8,10 +8,10 @@ ON_BOOT = [
 ONCE_AT_START = []
 
 EVERY_SECONDS = [
-    {"id":"system_monitor","enabled":True,"description":"Current JSON system monitor + rolling averages.","interval_sec":1,"builtin":"","command":"bash /home/ubuntu/system-monitor/sys-sample.sh","timeout_sec":20,"cwd":"/home/ubuntu/system-monitor","env":{}},
-    {"id":"communications_telegram","enabled":True,"description":"Telegram communications poller.","interval_sec":1,"builtin":"","command":"python3 /home/ubuntu/communications/telegram/poll.py","timeout_sec":20,"needs_internet":True,"cwd":"/home/ubuntu/communications/telegram","env":{}},
-    {"id":"communications_discord","enabled":True,"description":"Discord communications poller.","interval_sec":1,"builtin":"","command":"python3 /home/ubuntu/communications/discord/poll.py","timeout_sec":20,"needs_internet":True,"cwd":"/home/ubuntu/communications/discord","env":{}},
-    {"id":"communications_slack","enabled":True,"description":"Slack communications poller.","interval_sec":1,"builtin":"","command":"python3 /home/ubuntu/communications/slack/poll.py","timeout_sec":20,"needs_internet":True,"cwd":"/home/ubuntu/communications/slack","env":{}},
+    {"id":"system_monitor","enabled":True,"description":"Current JSON system monitor + rolling averages.","interval_sec":1,"builtin":"","command":"sudo -u ubuntu bash /home/ubuntu/system-monitor/sys-sample.sh","timeout_sec":20,"cwd":"/home/ubuntu/system-monitor","env":{}},
+    {"id":"communications_telegram","enabled":True,"description":"Telegram communications poller.","interval_sec":1,"builtin":"","command":"sudo -u ubuntu python3 /home/ubuntu/communications/telegram/poll.py","timeout_sec":20,"needs_internet":True,"cwd":"/home/ubuntu/communications/telegram","env":{}},
+    {"id":"communications_discord","enabled":True,"description":"Discord communications poller.","interval_sec":1,"builtin":"","command":"sudo -u ubuntu python3 /home/ubuntu/communications/discord/poll.py","timeout_sec":20,"needs_internet":True,"cwd":"/home/ubuntu/communications/discord","env":{}},
+    {"id":"communications_slack","enabled":True,"description":"Slack communications poller.","interval_sec":1,"builtin":"","command":"sudo -u ubuntu python3 /home/ubuntu/communications/slack/poll.py","timeout_sec":20,"needs_internet":True,"cwd":"/home/ubuntu/communications/slack","env":{}},
 ]
 
 EVERY_MINUTE = [
