@@ -16,7 +16,7 @@ The Hawaii collector SSH-writes NDJSON to:
 
 `data/hawaii.ndjson`
 
-The existing AWS `server.js` polls that file every `HAWAII_POLL_MS` milliseconds (default 2000), parses new records, maintains a short-lived Hawaii flow map, and appends Hawaii arcs to the **same `arcs` array** used by the AWS/local collector.
+The existing AWS `server.js` polls that file every `HAWAII_POLL_MS` milliseconds (default 2000), parses new records, maintains a five-minute Hawaii flow retention window after the last observation, and appends Hawaii arcs to the **same `arcs` array** used by the AWS/local collector.
 
 There is no separate Hawaii visualizer or Hawaii API dataset.
 
@@ -41,7 +41,7 @@ Optional environment variables:
 
 ```bash
 HAWAII_POLL_MS=2000
-HAWAII_FLOW_TTL_MS=15000
+HAWAII_FLOW_TTL_MS=300000
 ```
 
 No new npm dependency is required.
