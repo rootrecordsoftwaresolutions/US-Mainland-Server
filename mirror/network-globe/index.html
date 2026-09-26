@@ -30,21 +30,20 @@
 <script>
 const params=new URLSearchParams(location.search);if(params.get('embed')==='1')document.documentElement.classList.add('embed');
 
-// Solid green “electricity” arcs — dash animation travels along the path.
-// Altitude comes from the server (distance-scaled) so long hops clear the globe.
+// Solid continuous green arcs (no dash gaps / breaks).
 const ARC_GREEN='#22c55e';
-const ARC_GREEN_BRIGHT='#86efac';
+const ARC_GREEN_BRIGHT='#4ade80';
 
 const globe=Globe()(document.getElementById('globe'))
 .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
 .backgroundColor('#000011').showAtmosphere(true).atmosphereColor('#14532d').atmosphereAltitude(.16)
-.arcColor(d=>d.color||[ARC_GREEN,ARC_GREEN_BRIGHT])
+.arcColor(d=>d.color||ARC_GREEN)
 .arcAltitude(d=>d.altitude!=null?d.altitude:.18)
-.arcStroke(d=>d.stroke||1.1)
-.arcDashLength(.28)
-.arcDashGap(.12)
-.arcDashAnimateTime(d=>d.animateMs||900)
-.arcDashInitialGap(()=>Math.random())
+.arcStroke(d=>d.stroke||1.25)
+// Full solid path — gap 0 so the line is continuous end-to-end
+.arcDashLength(1)
+.arcDashGap(0)
+.arcDashAnimateTime(0)
 .arcLabel(d=>{let s=`${d.process||'network'} · ${d.protocol||''}`;if(d.endpoint)s+=` · ${d.endpoint}`;if(d.port)s+=`:${d.port}`;if(d.awsRegion)s+=`<br>AWS ${d.awsRegion} · ${d.awsCount}`;else if(d.city||d.country)s+=`<br>${d.city||''}${d.city&&d.country?', ':''}${d.country||''}`;if(d.org)s+=`<br>${d.org}`;return s})
 .pointLabel(d=>d.label||'')
 .pointColor(d=>d.type==='origin'?'#fff':d.type==='aws'?ARC_GREEN_BRIGHT:ARC_GREEN)
