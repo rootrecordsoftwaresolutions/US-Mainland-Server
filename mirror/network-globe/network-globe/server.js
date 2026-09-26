@@ -548,6 +548,26 @@ async function refreshAws() {
   }
 }
 
+
+
+function angularDistanceRad(lat1, lng1, lat2, lng2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+}
+function arcAltitudeFor(lat1, lng1, lat2, lng2) {
+  const ang = angularDistanceRad(lat1, lng1, lat2, lng2);
+  return Math.min(0.55, Math.max(0.08, 0.09 + (ang / Math.PI) * 0.48));
+}
+/** Skip local/same-city arcs (span ~0) that render as spikes into space. */
+function arcTooShort(lat1, lng1, lat2, lng2) {
+  return angularDistanceRad(lat1, lng1, lat2, lng2) < 0.02; // ~125 km
+}
+const ARC_COLOR_GREEN = ['#22c55e', '#86efac'];
+
 function buildPayload() {
   const now = Date.now();
   const arcs = [];
@@ -583,12 +603,14 @@ function buildPayload() {
     const pps = stats.packets / (PACKET_WINDOW_MS / 1000);
     const bps = stats.bytes / (PACKET_WINDOW_MS / 1000);
     const processName = flow.process || 'network';
+    if (arcTooShort(origin.lat, origin.lng, g.lat, g.lng)) continue;
     arcs.push({
       startLat: origin.lat, startLng: origin.lng,
       endLat: g.lat, endLng: g.lng,
-      color: processName.includes('git') ? ['#60a5fa','#ffffff'] : processName.includes('megasync') ? ['#a78bfa','#ffffff'] : ['#ff6b9d','#ffffff'],
-      stroke: Math.max(0.35, Math.min(2.4, 0.5 + Math.log10(1 + packetsPerSecondSafe(pps)) * 0.8)),
-      altitude: 0.12 + Math.min(0.28, Math.abs(g.lat - origin.lat) / 350),
+      color: ARC_COLOR_GREEN,
+      stroke: Math.max(0.7, Math.min(2.6, 0.9 + Math.log10(1 + packetsPerSecondSafe(pps)) * 0.85)),
+      altitude: arcAltitudeFor(origin.lat, origin.lng, g.lat, g.lng),
+      animateMs: Math.max(600, Math.min(1600, 700 + angularDistanceRad(origin.lat, origin.lng, g.lat, g.lng) * 400)),
       process: processName,
       protocol: flow.proto,
       port: flow.peer.port,
@@ -619,12 +641,14 @@ function buildPayload() {
     const pps = flow.packets / (PACKET_WINDOW_MS / 1000);
     const bps = flow.bytes / (PACKET_WINDOW_MS / 1000);
     const processName = flow.process || 'network';
+    if (arcTooShort(flow.source.lat, flow.source.lng, g.lat, g.lng)) continue;
     arcs.push({
       startLat: flow.source.lat, startLng: flow.source.lng,
       endLat: g.lat, endLng: g.lng,
-      color: processName.includes('git') ? ['#60a5fa','#ffffff'] : processName.includes('megasync') ? ['#a78bfa','#ffffff'] : ['#ff6b9d','#ffffff'],
-      stroke: Math.max(0.35, Math.min(2.4, 0.5 + Math.log10(1 + packetsPerSecondSafe(pps)) * 0.8)),
-      altitude: 0.12 + Math.min(0.28, Math.abs(g.lat - flow.source.lat) / 350),
+      color: ARC_COLOR_GREEN,
+      stroke: Math.max(0.7, Math.min(2.6, 0.9 + Math.log10(1 + packetsPerSecondSafe(pps)) * 0.85)),
+      altitude: arcAltitudeFor(flow.source.lat, flow.source.lng, g.lat, g.lng),
+      animateMs: Math.max(600, Math.min(1600, 700 + angularDistanceRad(flow.source.lat, flow.source.lng, g.lat, g.lng) * 400)),
       process: processName,
       protocol: flow.proto,
       port: flow.peer.port,
@@ -651,9 +675,10 @@ function buildPayload() {
         arcs.push({
           startLat: origin.lat, startLng: origin.lng,
           endLat: n.lat, endLng: n.lng,
-          color: ['#38bdf8','#ffffff'],
-          stroke: 0.85,
-          altitude: 0.22,
+          color: ARC_COLOR_GREEN,
+          stroke: 1.0,
+          altitude: arcAltitudeFor(origin.lat, origin.lng, n.lat, n.lng),
+          animateMs: Math.max(600, Math.min(1600, 700 + angularDistanceRad(origin.lat, origin.lng, n.lat, n.lng) * 400)),
           process: 'AWS',
           protocol: 'aws',
           port: null,
