@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = process.argv[2] || require('path').join(__dirname, '..', 'server.js');
 let t = fs.readFileSync(path, 'utf8');
 
+// Keep the last Hawaii-observed connection visible for five minutes after disconnect.
+t = t.replace(/const HAWAII_FLOW_TTL_MS = Number\(process\.env\.HAWAII_FLOW_TTL_MS \|\| [^;]+\);/, 'const HAWAII_FLOW_TTL_MS = Number(process.env.HAWAII_FLOW_TTL_MS || 5 * 60 * 1000);');
+
 const helper = `
 function angularDistanceRad(lat1, lng1, lat2, lng2) {
   const toRad = (d) => (d * Math.PI) / 180;
