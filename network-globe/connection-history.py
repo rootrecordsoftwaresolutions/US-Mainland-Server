@@ -85,7 +85,7 @@ def main():
         if current!=previous:
             c.close()
             if send_daily(): pass
-            previous=current; offset=0; c=init()
+            previous=current; c=init()
         time.sleep(1)
 
 if __name__=="__main__": main()
