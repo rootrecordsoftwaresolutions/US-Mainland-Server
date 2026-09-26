@@ -1,9 +1,14 @@
 {
-  "name": "network-globe-hawaii-data",
-  "version": "1.0.0",
+  "name": "network-globe",
+  "version": "3.0.1",
   "private": true,
-  "description": "Headless Hawaii network telemetry collector for Network Globe (live-only, Telegram insurance relay, no AWS backfill)",
-  "main": "collector.js",
-  "scripts": { "start": "node collector.js", "start:root": "sudo -E node collector.js" },
-  "dependencies": {}
+  "description": "Live network telemetry globe service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  }
 }
