@@ -1,0 +1,1 @@
+# weather — current-only NWS mirror\n\nMainland copy of the Pacific NWS weather skill. **Only `*_current.*` files are ever kept or generated.** No archive, historical rename, dated folder, daily ZIP, or persistent manifest is created. Changed source content replaces the existing `_current` file in place. Scheduler state is in memory only.\n
