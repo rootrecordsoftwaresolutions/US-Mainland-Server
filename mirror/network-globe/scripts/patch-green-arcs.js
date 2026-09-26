@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** One-shot: solid green arcs + geodesic altitude + drop zero-span arcs. */
+/** One-shot: solid green arcs + geodesic altitude + persistent Hawaii/mainland connection. */
 const fs = require('fs');
 const path = process.argv[2] || require('path').join(__dirname, '..', 'server.js');
 let t = fs.readFileSync(path, 'utf8');
@@ -43,7 +43,7 @@ t = t.replace(
   /color: processName\.includes\('git'\) \? \['#60a5fa','#ffffff'\] : processName\.includes\('megasync'\) \? \['#a78bfa','#ffffff'\] : \['#ff6b9d','#ffffff'\],/g,
   'color: ARC_COLOR_GREEN,'
 );
-t = t.replace(/color: ARC_COLOR_GREEN,/g, 'color: ARC_COLOR_GREEN,'); // no-op if already
+t = t.replace(/color: ARC_COLOR_GREEN,/g, 'color: ARC_COLOR_GREEN,');
 t = t.replace(/color: \['#38bdf8','#ffffff'\],/g, 'color: ARC_COLOR_GREEN,');
 t = t.replace(/color: \['#22c55e', '#86efac'\],/g, 'color: ARC_COLOR_GREEN,');
 
@@ -58,7 +58,7 @@ if (!t.includes('arcTooShort(origin.lat')) {
   );
 }
 
-// Hawaii arcs
+// Hawaii observed-flow arcs
 if (!t.includes('arcTooShort(flow.source.lat')) {
   t = t.replace(
     /const processName = flow\.process \|\| 'network';\n    arcs\.push\(\{\n      startLat: flow\.source\.lat, startLng: flow\.source\.lng,/,
@@ -69,6 +69,54 @@ if (!t.includes('arcTooShort(flow.source.lat')) {
   );
 }
 
+// Persistent Hawaii ↔ mainland anchor. Any Hawaii observation within the five-minute
+// Hawaii flow TTL keeps this green bidirectional connection alive. New observations
+// refresh lastSeen in hawaiiFlows, so the five-minute window continuously rolls forward.
+if (!t.includes('function addPersistentHawaiiMainlandArc')) {
+  const persistentHelper = `
+function addPersistentHawaiiMainlandArc(arcs, origin, hawaiiFlows) {
+  if (!origin?.lat || !Number.isFinite(origin.lng) || !hawaiiFlows?.size) return;
+  let latest = null;
+  for (const flow of hawaiiFlows.values()) {
+    if (!flow?.source || !Number.isFinite(flow.source.lat) || !Number.isFinite(flow.source.lng)) continue;
+    if (!latest || Number(flow.lastSeen || 0) > Number(latest.lastSeen || 0)) latest = flow;
+  }
+  if (!latest) return;
+  const hLat = latest.source.lat;
+  const hLng = latest.source.lng;
+  if (arcTooShort(origin.lat, origin.lng, hLat, hLng)) return;
+  const altitude = arcAltitudeFor(origin.lat, origin.lng, hLat, hLng);
+  const animateMs = Math.max(600, Math.min(1600, 700 + angularDistanceRad(origin.lat, origin.lng, hLat, hLng) * 400));
+  const common = {
+    color: ARC_COLOR_GREEN,
+    stroke: 1.35,
+    altitude,
+    animateMs,
+    process: 'Hawaii ↔ Mainland',
+    protocol: 'persistent',
+    port: null,
+    ip: latest.source.ip || null,
+    endpoint: 'Hawaii',
+    city: null,
+    country: 'United States',
+    asn: latest.source.asn || null,
+    org: latest.source.org || null,
+    sourceNode: latest.sourceNode || 'HawaiiRoot',
+    sourceRegion: latest.sourceRegion || 'local-hawaii',
+    sourceLabel: latest.source.label || 'Hawaii'
+  };
+  arcs.push({ ...common, startLat: origin.lat, startLng: origin.lng, endLat: hLat, endLng: hLng });
+  arcs.push({ ...common, startLat: hLat, startLng: hLng, endLat: origin.lat, endLng: origin.lng });
+}
+`;
+  t = t.replace('function buildPayload() {', persistentHelper + 'function buildPayload() {');
+}
+
+const anchorCall = '  addPersistentHawaiiMainlandArc(arcs, origin, hawaiiFlows);\n';
+if (!t.includes(anchorCall)) {
+  t = t.replace('  pruneHawaiiFlows();\n', '  pruneHawaiiFlows();\n' + anchorCall);
+}
+
 t = t.replace(
   /altitude: 0\.12 \+ Math\.min\(0\.28, Math\.abs\(g\.lat - origin\.lat\) \/ 350\),/g,
   'altitude: arcAltitudeFor(origin.lat, origin.lng, g.lat, g.lng),\n      animateMs: Math.max(600, Math.min(1600, 700 + angularDistanceRad(origin.lat, origin.lng, g.lat, g.lng) * 400)),'
@@ -77,8 +125,6 @@ t = t.replace(
   /altitude: 0\.12 \+ Math\.min\(0\.28, Math\.abs\(g\.lat - flow\.source\.lat\) \/ 350\),/g,
   'altitude: arcAltitudeFor(flow.source.lat, flow.source.lng, g.lat, g.lng),\n      animateMs: Math.max(600, Math.min(1600, 700 + angularDistanceRad(flow.source.lat, flow.source.lng, g.lat, g.lng) * 400)),'
 );
-// If already arcAltitudeFor without short-skip, still fine
-
 t = t.replace(
   /stroke: Math\.max\(0\.35, Math\.min\(2\.4, 0\.5 \+ Math\.log10\(1 \+ packetsPerSecondSafe\(pps\)\) \* 0\.8\)\),/g,
   'stroke: Math.max(0.7, Math.min(2.6, 0.9 + Math.log10(1 + packetsPerSecondSafe(pps)) * 0.85)),'
