@@ -117,3 +117,32 @@ ssh rr-aws 'chmod 0755 /home/ubuntu/network-globe/network-globe/scripts/maintain
 ```
 
 The first deployment is intentionally one-shot. The collector owns the cadence thereafter; it probes the remote feed size every 15 minutes and only interrupts its SSH stream when the 64 MiB ceiling is exceeded.
+
+
+## Live NDJSON reader
+
+Mainland is the receiver and owner of the live Hawaii feed. Hawaii does not poll this side.
+
+The feed server exposes:
+
+- `GET /hawaii.ndjson?from=<byte-offset>` — incremental NDJSON
+- `X-Next-Offset` — byte offset for the next poll
+- `GET /health` — simple health check
+
+Default listener: `0.0.0.0:8787`.
+
+Example:
+
+```text
+http://18.118.30.226:8787/hawaii.ndjson
+```
+
+The body is still raw NDJSON. The browser can keep a byte offset and poll only new data.
+
+## Daily connection history
+
+`connection-history.py` watches the same live feed and keeps a compact SQLite ledger at:
+
+`data/hawaii-connections.sqlite3`
+
+It aggregates identical source/destination/protocol/process connections rather than storing every repeated observation. At the Hawaii daily rollover it sends the SQLite file to the existing Root Record Data Relay Telegram destination and deletes the local SQLite file **only after Telegram confirms success**. The live NDJSON feed is unaffected.
