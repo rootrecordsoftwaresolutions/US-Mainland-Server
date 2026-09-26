@@ -12,7 +12,8 @@ const PACKET_WINDOW_MS = Number(process.env.PACKET_WINDOW_MS || 10000);
 const SOURCE_NODE = process.env.SOURCE_NODE || 'HawaiiRoot';
 const SOURCE_REGION = process.env.SOURCE_REGION || 'local-hawaii';
 const AWS_USER = process.env.AWS_USER || 'ubuntu';
-const AWS_HOST = process.env.AWS_HOST || 'ssh.rootrecord.cloud';
+const AWS_HOST = process.env.AWS_HOST || '18.118.30.226';
+const AWS_PORT = Number(process.env.AWS_PORT || 22);
 const AWS_REMOTE_DIR = process.env.AWS_REMOTE_DIR || '/home/ubuntu/network-globe/network-globe';
 const SSH_KEY = process.env.SSH_KEY || '/home/rootrecord/.ssh/rootrecordkey.pem';
 const SSH_CONNECT_TIMEOUT = Number(process.env.SSH_CONNECT_TIMEOUT || 8);
@@ -267,11 +268,7 @@ function sshArgs() {
     '-o', 'StrictHostKeyChecking=accept-new'
   ];
   if (SSH_KEY) args.push('-i', SSH_KEY);
-  if (AWS_HOST === 'ssh.rootrecord.cloud') {
-    args.push(
-      '-o', 'ProxyCommand=/home/rootrecord/.local/bin/cloudflared access ssh --hostname %h'
-    );
-  }
+  if (AWS_PORT) args.push('-p', String(AWS_PORT));
   args.push(
     `${AWS_USER}@${AWS_HOST}`,
     `mkdir -p ${shellQuote(AWS_REMOTE_DIR + '/data')} && printf '%s\\n' '${readyMarker}' && exec cat >> ${shellQuote(remoteFile)}`
@@ -291,11 +288,7 @@ function baseSshArgs() {
     '-o', 'StrictHostKeyChecking=accept-new'
   ];
   if (SSH_KEY) args.push('-i', SSH_KEY);
-  if (AWS_HOST === 'ssh.rootrecord.cloud') {
-    args.push(
-      '-o', 'ProxyCommand=/home/rootrecord/.local/bin/cloudflared access ssh --hostname %h'
-    );
-  }
+  if (AWS_PORT) args.push('-p', String(AWS_PORT));
   return args;
 }
 
@@ -468,7 +461,7 @@ async function boot() {
   await collect();
   setInterval(() => collect().catch(() => {}), POLL_MS);
   setInterval(() => connectSsh(), 3000);
-  console.log(`Hawaii data collector → ${AWS_USER}@${AWS_HOST}:${AWS_REMOTE_DIR}/data/hawaii.ndjson`);
+  console.log(`Hawaii data collector → ${AWS_USER}@${AWS_HOST}:${AWS_PORT}${AWS_REMOTE_DIR}/data/hawaii.ndjson`);
   console.log(`origin: ${origin?.label || ORIGIN_LABEL}`);
 }
 
